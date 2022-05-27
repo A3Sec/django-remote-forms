@@ -191,7 +191,9 @@ class RemoteChoiceField(RemoteField):
 
 class RemoteModelChoiceField(RemoteChoiceField):
     def as_dict(self):
-        return super(RemoteModelChoiceField, self).as_dict()
+        field_dict = super(RemoteModelChoiceField, self).as_dict()
+        field_dict['initial'] = getattr(field_dict['initial'], 'pk', field_dict['initial'])
+        return field_dict
 
 
 class RemoteTypedChoiceField(RemoteChoiceField):
@@ -217,7 +219,13 @@ class RemoteCommaSeparatedField(RemoteMultipleChoiceField):
 
 class RemoteModelMultipleChoiceField(RemoteMultipleChoiceField):
     def as_dict(self):
-        return super(RemoteModelMultipleChoiceField, self).as_dict()
+        field_dict = super(RemoteModelMultipleChoiceField, self).as_dict()
+        if type(field_dict['initial']) is list:
+            field_dict['initial'] = [getattr(i, 'pk', i) for i in field_dict['initial']]
+        else:
+            field_dict['initial'] = getattr(field_dict['initial'], 'pk', field_dict['initial'])
+
+        return field_dict
 
 
 class RemoteTypedMultipleChoiceField(RemoteMultipleChoiceField):
@@ -296,7 +304,10 @@ class CommaSeparatedField(forms.MultipleChoiceField):
         super().__init__(*args, **kwargs)
 
     def prepare_value(self, value):
-        return value.split(',') if value else value
+        if type(value) == str:
+            return value.split(',')
+        else:
+            return value
 
     def clean(self, value):
         value = super().clean(value)
