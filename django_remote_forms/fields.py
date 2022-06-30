@@ -220,14 +220,11 @@ class RemoteCommaSeparatedField(RemoteMultipleChoiceField):
 
         if field_dict['initial']:
             initial_list = field_dict['initial'].split(',')
-
             for initial_value in initial_list:
-
                 initial_option = {
                     'value': initial_value,
                     'display': f'{initial_value} (Not valid)',
                 }
-
                 if initial_option not in field_dict['choices']:
                     field_dict['choices'].append(initial_option)
 
