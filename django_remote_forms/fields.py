@@ -214,7 +214,24 @@ class RemoteMultipleChoiceField(RemoteChoiceField):
 
 
 class RemoteCommaSeparatedField(RemoteMultipleChoiceField):
-    pass
+    def as_dict(self):
+
+        field_dict = super(RemoteCommaSeparatedField, self).as_dict()
+
+        if field_dict['initial']:
+            initial_list = field_dict['initial'].split(',')
+
+            for initial_value in initial_list:
+
+                initial_option = {
+                    'value': initial_value,
+                    'display': f'{initial_value} (Not valid)',
+                }
+
+                if initial_option not in field_dict['choices']:
+                    field_dict['choices'].append(initial_option)
+
+        return field_dict
 
 
 class RemoteModelMultipleChoiceField(RemoteMultipleChoiceField):
@@ -305,7 +322,12 @@ class CommaSeparatedField(forms.MultipleChoiceField):
 
     def prepare_value(self, value):
         if type(value) == str:
-            return value.split(',')
+            value_list = value.split(',')
+            self.choices = list(self.choices)
+            [self.choices.append((v, f'{v} (Not valid)')) for v in value_list
+             if v and (v, v) not in self.choices]
+
+            return value_list
         else:
             return value
 
