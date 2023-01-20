@@ -221,9 +221,11 @@ class RemoteCommaSeparatedField(RemoteMultipleChoiceField):
         if field_dict['initial']:
             initial_list = field_dict['initial'].split(',')
             for initial_value in initial_list:
+                display_value = f'{initial_value} (Not valid)' \
+                    if self.field.validate_choices else initial_value
                 initial_option = {
                     'value': initial_value,
-                    'display': f'{initial_value} (Not valid)',
+                    'display': display_value,
                 }
                 if initial_option not in field_dict['choices']:
                     field_dict['choices'].append(initial_option)
@@ -314,19 +316,28 @@ class RemoteSlugField(RemoteCharField):
 
 class CommaSeparatedField(forms.MultipleChoiceField):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, *, validate_choices=True, **kwargs):
+        super().__init__(**kwargs)
+        # This argument allow disable the validation that checks if value is
+        # into field options. This is useful to allow the use of regex
+        # for example.
+        self.validate_choices = validate_choices
 
     def prepare_value(self, value):
         if type(value) == str:
             value_list = value.split(',')
             self.choices = list(self.choices)
             [self.choices.append((v, f'{v} (Not valid)')) for v in value_list
-             if v and (v, v) not in self.choices]
+             if self.validate_choices and v and (v, v) not in self.choices]
 
             return value_list
         else:
             return value
+
+    def valid_value(self, value: str) -> bool:
+        if self.validate_choices:
+            return super().valid_value(value)
+        return True
 
     def clean(self, value):
         value = super().clean(value)
