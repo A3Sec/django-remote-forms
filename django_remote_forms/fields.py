@@ -34,6 +34,7 @@ class RemoteField(object):
         field_dict['label'] = self.field.label
         field_dict['initial'] = self.form_initial_data or self.field.initial
         field_dict['help_text'] = self.field.help_text
+        field_dict['disabled'] = self.field.disabled
 
         field_dict['error_messages'] = self.field.error_messages
 
